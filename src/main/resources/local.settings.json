@@ -1,0 +1,16 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "java",
+    "SENDGRID_API_KEY": "",
+    "FROM_EMAIL": "noreply@feedback-platform.com",
+    "ADMIN_EMAIL": "admin@example.com",
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": ""
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}
