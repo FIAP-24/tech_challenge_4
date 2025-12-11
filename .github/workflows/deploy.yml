@@ -1,0 +1,38 @@
+name: Deploy Quarkus App to Azure Functions
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '21'
+  MAVEN_VERSION: '3.9.5'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Build with Maven
+      run: |
+        mvn clean package -DskipTests
+
+    - name: Deploy to Azure Functions
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${{ secrets.FUNCTION_APP_NAME }}
+        package: ${{ github.workspace }}/target/azure-functions/*
+        publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
+
