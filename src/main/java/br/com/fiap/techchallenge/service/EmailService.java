@@ -14,6 +14,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Serviço para envio de e-mails via SendGrid
@@ -23,6 +26,7 @@ import java.io.IOException;
 public class EmailService {
 
     private static final Logger LOG = Logger.getLogger(EmailService.class);
+    private static final DateTimeFormatter BRAZIL_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     @ConfigProperty(name = "sendgrid.api.key")
     String sendGridApiKey;
@@ -104,6 +108,7 @@ public class EmailService {
      * Constrói o corpo do e-mail para avaliação crítica
      */
     private String construirEmailCritico(Avaliacao avaliacao) {
+        String dataFormatada = avaliacao.getDataHora().format(BRAZIL_FORMATTER);
         return String.format("""
                         <!DOCTYPE html>
                         <html>
@@ -155,7 +160,7 @@ public class EmailService {
                         </html>
                         """,
                 avaliacao.getId(),
-                avaliacao.getDataHora(),
+                dataFormatada,
                 avaliacao.getNota(),
                 avaliacao.getUrgencia(),
                 avaliacao.getDescricao()
@@ -165,118 +170,116 @@ public class EmailService {
     /**
      * Constrói o corpo do e-mail para relatório semanal
      */
-    private String construirEmailRelatorio(RelatorioSemanal relatorio) {
-        StringBuilder urgencias = new StringBuilder();
-        relatorio.getContagemPorUrgencia().forEach((nivel, count) -> {
-            urgencias.append(String.format(
-                    "<div class='info'><span class='label'>%s:</span> %d avaliações</div>%n",
-                    nivel, count
-            ));
-        });
+    public String construirEmailRelatorio(RelatorioSemanal relatorio) {
+        // 1. Formatadores para datas brasileiras
+        DateTimeFormatter dataHoraFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        DateTimeFormatter apenasDataFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        // Palavras recorrentes
-        StringBuilder palavrasHtml = new StringBuilder();
-        if (relatorio.getPalavrasRecorrentes() != null && !relatorio.getPalavrasRecorrentes().isEmpty()) {
-            relatorio.getPalavrasRecorrentes().forEach((palavra, count) -> {
-                palavrasHtml.append(String.format(
-                        "<div class='info'><span class='label'>\"%s\":</span> %d ocorrências</div>%n",
-                        palavra, count
-                ));
-            });
+        // 2. Preparação das datas legíveis
+        String dataInicioFormatada = relatorio.getPeriodoInicio().format(apenasDataFmt);
+        String dataFimFormatada = relatorio.getPeriodoFim().format(apenasDataFmt);
+        String dataGeracaoFormatada = relatorio.getDataGeracao().format(dataHoraFmt);
+
+        // 3. Construção da Tabela de "Avaliações por Dia" (Requisito do PDF)
+        StringBuilder distribuicaoDiariaHtml = new StringBuilder();
+        if (relatorio.getAvaliacoesPorDia() != null && !relatorio.getAvaliacoesPorDia().isEmpty()) {
+            distribuicaoDiariaHtml.append("<table style='width:100%; border-collapse: collapse; margin-bottom: 20px;'>");
+            distribuicaoDiariaHtml.append("<tr style='background-color: #f2f2f2;'><th style='padding: 8px; border: 1px solid #ddd; text-align: left;'>Data</th><th style='padding: 8px; border: 1px solid #ddd; text-align: center;'>Quantidade</th></tr>");
+
+            // Ordena por data (chave) para o relatório ficar cronológico
+            relatorio.getAvaliacoesPorDia().entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> {
+                        distribuicaoDiariaHtml.append(String.format(
+                                "<tr><td style='padding: 8px; border: 1px solid #ddd;'>%s</td><td style='padding: 8px; border: 1px solid #ddd; text-align: center;'>%d</td></tr>",
+                                entry.getKey(), entry.getValue()
+                        ));
+                    });
+            distribuicaoDiariaHtml.append("</table>");
         } else {
-            palavrasHtml.append("<div class='info' style='color: #666;'>Nenhuma palavra recorrente identificada</div>");
+            distribuicaoDiariaHtml.append("<p>Nenhuma avaliação registrada no período.</p>");
         }
 
-        // Frases recorrentes
-        StringBuilder frasesHtml = new StringBuilder();
-        if (relatorio.getFrasesRecorrentes() != null && !relatorio.getFrasesRecorrentes().isEmpty()) {
-            relatorio.getFrasesRecorrentes().forEach((frase, count) -> {
-                frasesHtml.append(String.format(
-                        "<div class='info'><span class='label'>\"%s\":</span> %d ocorrências</div>%n",
-                        frase, count
-                ));
-            });
-        } else {
-            frasesHtml.append("<div class='info' style='color: #666;'>Nenhuma frase recorrente identificada</div>");
-        }
+        // 4. Preparação de Urgências e Texto (Mantendo a lógica que você já possui)
+        String urgencias = relatorio.getAvaliacoesPorUrgencia().entrySet().stream()
+                .map(e -> String.format("<li><strong>%s:</strong> %d</li>", e.getKey(), e.getValue()))
+                .collect(Collectors.joining());
 
+        String palavrasHtml = relatorio.getPalavrasMaisRecorrentes().stream()
+                .map(p -> "<span style='background:#e1f5fe; padding:2px 8px; margin:2px; border-radius:10px; display:inline-block;'>" + p + "</span>")
+                .collect(Collectors.joining());
+
+        String frasesHtml = relatorio.getFrasesRecorrentes().stream()
+                .map(f -> "<li>\"" + f + "\"</li>")
+                .collect(Collectors.joining());
+
+        // 5. Template Final Formatado
         return String.format("""
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <style>
-                                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                                .header { background-color: #007bff; color: white; padding: 20px; border-radius: 5px; }
-                                .content { background-color: #f8f9fa; padding: 20px; margin-top: 20px; border-radius: 5px; }
-                                .info { margin: 10px 0; }
-                                .label { font-weight: bold; }
-                                .metric { background-color: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; }
-                                .metric-value { font-size: 24px; font-weight: bold; color: #007bff; }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <div class="header">
-                                    <h1>📊 Relatório Semanal de Feedback</h1>
-                                </div>
-                                <div class="content">
-                                    <p><strong>Período:</strong> %s a %s</p>
-                                    <p><strong>Data de Geração:</strong> %s</p>
-                        
-                                    <h2>Métricas Gerais</h2>
-                        
-                                    <div class="metric">
-                                        <div class="label">Total de Avaliações</div>
-                                        <div class="metric-value">%d</div>
-                                    </div>
-                        
-                                    <div class="metric">
-                                        <div class="label">Média das Notas</div>
-                                        <div class="metric-value">%.2f / 10</div>
-                                    </div>
-                        
-                                    <div class="metric">
-                                        <div class="label">Nota Mais Alta</div>
-                                        <div class="metric-value">%d</div>
-                                    </div>
-                        
-                                    <div class="metric">
-                                        <div class="label">Nota Mais Baixa</div>
-                                        <div class="metric-value">%d</div>
-                                    </div>
-                        
-                                    <h2>Distribuição por Urgência</h2>
-                                    <div style="background-color: white; padding: 15px; border-radius: 5px;">
-                                        %s
-                                    </div>
-                        
-                                    <h2>Palavras Mais Recorrentes</h2>
-                                    <div style="background-color: white; padding: 15px; border-radius: 5px; margin-top: 10px;">
-                                        %s
-                                    </div>
-                        
-                                    <h2>Frases Mais Recorrentes</h2>
-                                    <div style="background-color: white; padding: 15px; border-radius: 5px; margin-top: 10px;">
-                                        %s
-                                    </div>
-                        
-                                    <p style="margin-top: 20px; color: #666;">
-                                        Este relatório é gerado automaticamente toda semana.
-                                        Para mais detalhes, acesse o portal de administração.
-                                    </p>
-                                </div>
-                            </div>
-                        </body>
-                        </html>
-                        """,
-                relatorio.getPeriodoInicio(),
-                relatorio.getPeriodoFim(),
-                relatorio.getDataGeracao(),
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { width: 80%%; margin: 20px auto; border: 1px solid #eee; padding: 20px; border-radius: 8px; }
+                .header { background-color: #007bff; color: white; padding: 10px; text-align: center; border-radius: 8px 8px 0 0; }
+                .section { margin-top: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+                h2 { color: #007bff; font-size: 18px; }
+                .metric-box { display: flex; justify-content: space-between; background: #f8f9fa; padding: 15px; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Relatório Semanal de Feedbacks</h1>
+                </div>
+                
+                <div class="section">
+                    <p><strong>Período:</strong> %s até %s</p>
+                    <p><strong>Gerado em:</strong> %s</p>
+                </div>
+
+                <div class="section">
+                    <h2>Métricas de Desempenho</h2>
+                    <div class="metric-box">
+                        <div><strong>Total:</strong> %d</div>
+                        <div><strong>Média:</strong> %.2f</div>
+                        <div><strong>Máxima:</strong> %d</div>
+                        <div><strong>Mínima:</strong> %d</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Quantidade de Avaliações por Dia</h2>
+                    %s
+                </div>
+
+                <div class="section">
+                    <h2>Distribuição por Urgência</h2>
+                    <ul>%s</ul>
+                </div>
+
+                <div class="section">
+                    <h2>Análise de Texto</h2>
+                    <p><strong>Palavras-chave:</strong></p>
+                    <div>%s</div>
+                    <p><strong>Frases Comuns:</strong></p>
+                    <ul>%s</ul>
+                </div>
+                
+                <div style="font-size: 12px; color: #777; margin-top: 30px; text-align: center;">
+                    Sistema Automático de Feedbacks - Tech Challenge Fase 4
+                </div>
+            </div>
+        </body>
+        </html>
+        """,
+                dataInicioFormatada,     // %s
+                dataFimFormatada,        // %s
+                dataGeracaoFormatada,    // %s
                 relatorio.getTotalAvaliacoes(),
                 relatorio.getMediaNotas(),
                 relatorio.getNotaMaisAlta(),
                 relatorio.getNotaMaisBaixa(),
+                distribuicaoDiariaHtml.toString(), // A nova tabela de avaliações por dia
                 urgencias,
                 palavrasHtml,
                 frasesHtml

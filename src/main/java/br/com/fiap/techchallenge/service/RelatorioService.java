@@ -76,6 +76,12 @@ public class RelatorioService {
                 .filter(desc -> desc != null && !desc.trim().isEmpty())
                 .collect(Collectors.toList());
 
+        Map<String, Long> avaliacoesPorDia = avaliacoes.stream()
+                .collect(Collectors.groupingBy(
+                        a -> a.getDataHora().toLocalDate().toString(),
+                        Collectors.counting()
+                ));
+
         Map<String, Long> palavrasRecorrentes = analiseTextoService.analisarPalavrasRecorrentes(descricoes);
         Map<String, Long> frasesRecorrentes = analiseTextoService.analisarFrasesRecorrentes(descricoes);
 
@@ -93,6 +99,7 @@ public class RelatorioService {
                 .contagemPorUrgencia(contagemPorUrgencia)
                 .palavrasRecorrentes(palavrasRecorrentes)
                 .frasesRecorrentes(frasesRecorrentes)
+                .avaliacoesPorDia(avaliacoesPorDia)
                 .build();
 
         relatorio.inicializar();

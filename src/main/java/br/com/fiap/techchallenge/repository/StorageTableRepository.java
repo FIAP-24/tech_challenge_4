@@ -122,6 +122,7 @@ public class StorageTableRepository {
             initialize();
             LOG.infof("Salvando relatório: %s", relatorio.getId());
 
+
             // Cria a tabela se não existir
             try {
                 tableServiceClient.createTableIfNotExists(TABLE_RELATORIOS);
@@ -138,6 +139,15 @@ public class StorageTableRepository {
                     .addProperty("mediaNotas", relatorio.getMediaNotas())
                     .addProperty("notaMaisAlta", relatorio.getNotaMaisAlta() != null ? relatorio.getNotaMaisAlta() : 0)
                     .addProperty("notaMaisBaixa", relatorio.getNotaMaisBaixa() != null ? relatorio.getNotaMaisBaixa() : 0);
+
+            if (relatorio.getAvaliacoesPorDia() != null) {
+                StringBuilder diasJson = new StringBuilder();
+                relatorio.getAvaliacoesPorDia().forEach((dia, count) -> {
+                    if (diasJson.length() > 0) diasJson.append(",");
+                    diasJson.append(String.format("\"%s\":%d", dia, count));
+                });
+                entity.addProperty("avaliacoesPorDia", "{" + diasJson + "}");
+            }
 
             // Adiciona contagem por urgência como propriedades separadas
             if (relatorio.getContagemPorUrgencia() != null) {

@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,6 +55,20 @@ public class RelatorioSemanal {
     @JsonProperty("frasesRecorrentes")
     private Map<String, Long> frasesRecorrentes;
 
+    @JsonProperty("avaliacoesPorDia")
+    private Map<String, Long> avaliacoesPorDia;
+
+    public Map<String, Long> getAvaliacoesPorUrgencia() {
+        return this.contagemPorUrgencia; // Mapeia para o campo existente
+    }
+
+    public List<String> getPalavrasMaisRecorrentes() {
+        return new ArrayList<>(this.palavrasRecorrentes.keySet()); // Converte o Map para List
+    }
+
+    public List<String> getFrasesRecorrentes() {
+        return new ArrayList<>(this.frasesRecorrentes.keySet()); // Converte o Map para List
+    }
     /**
      * Inicializa o relatório com ID único e data de geração
      */
@@ -68,6 +84,9 @@ public class RelatorioSemanal {
         }
         if (this.frasesRecorrentes == null) {
             this.frasesRecorrentes = Map.of();
+        }
+        if (this.avaliacoesPorDia == null) {
+            this.avaliacoesPorDia = Map.of();
         }
     }
 }
