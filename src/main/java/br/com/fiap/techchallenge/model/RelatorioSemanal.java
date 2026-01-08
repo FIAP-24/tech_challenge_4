@@ -66,7 +66,7 @@ public class RelatorioSemanal {
         return new ArrayList<>(this.palavrasRecorrentes.keySet()); // Converte o Map para List
     }
 
-    public List<String> getFrasesRecorrentes() {
+    public List<String> getFrasesMaisRecorrentes() {
         return new ArrayList<>(this.frasesRecorrentes.keySet()); // Converte o Map para List
     }
     /**

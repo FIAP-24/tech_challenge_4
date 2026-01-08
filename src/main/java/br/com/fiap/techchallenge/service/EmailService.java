@@ -209,7 +209,7 @@ public class EmailService {
                 .map(p -> "<span style='background:#e1f5fe; padding:2px 8px; margin:2px; border-radius:10px; display:inline-block;'>" + p + "</span>")
                 .collect(Collectors.joining());
 
-        String frasesHtml = relatorio.getFrasesRecorrentes().stream()
+        String frasesHtml = relatorio.getFrasesMaisRecorrentes().stream()
                 .map(f -> "<li>\"" + f + "\"</li>")
                 .collect(Collectors.joining());
 
