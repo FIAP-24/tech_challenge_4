@@ -159,20 +159,24 @@ public class StorageTableRepository {
             // Adiciona palavras recorrentes (serializa como JSON string)
             if (relatorio.getPalavrasRecorrentes() != null && !relatorio.getPalavrasRecorrentes().isEmpty()) {
                 StringBuilder palavrasJson = new StringBuilder();
-                relatorio.getPalavrasRecorrentes().forEach((palavra, count) -> {
+                for (java.util.Map.Entry<String, Long> entry : relatorio.getPalavrasRecorrentes().entrySet()) {
                     if (palavrasJson.length() > 0) palavrasJson.append(",");
-                    palavrasJson.append(String.format("\"%s\":%d", palavra.replace("\"", "\\\""), count));
-                });
+                    String palavra = entry.getKey() != null ? entry.getKey() : "";
+                    Long count = entry.getValue() != null ? entry.getValue() : 0L;
+                    palavrasJson.append(String.format("\"%s\":%d", palavra.replace("\"", "\\\\\""), count.longValue()));
+                }
                 entity.addProperty("palavrasRecorrentes", "{" + palavrasJson + "}");
             }
 
             // Adiciona frases recorrentes (serializa como JSON string)
             if (relatorio.getFrasesRecorrentes() != null && !relatorio.getFrasesRecorrentes().isEmpty()) {
                 StringBuilder frasesJson = new StringBuilder();
-                relatorio.getFrasesRecorrentes().forEach((frase, count) -> {
+                for (java.util.Map.Entry<String, Long> entry : relatorio.getFrasesRecorrentes().entrySet()) {
                     if (frasesJson.length() > 0) frasesJson.append(",");
-                    frasesJson.append(String.format("\"%s\":%d", frase.replace("\"", "\\\""), count));
-                });
+                    String frase = entry.getKey() != null ? entry.getKey() : "";
+                    Long count = entry.getValue() != null ? entry.getValue() : 0L;
+                    frasesJson.append(String.format("\"%s\":%d", frase.replace("\"", "\\\\\""), count.longValue()));
+                }
                 entity.addProperty("frasesRecorrentes", "{" + frasesJson + "}");
             }
 
