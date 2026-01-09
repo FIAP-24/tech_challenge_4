@@ -49,11 +49,11 @@
             <version>${azure.functions.java.library.version}</version>
         </dependency>
 
-        <!-- Quarkus REST -->
+        <!--&lt;!&ndash; Quarkus REST &ndash;&gt;
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!-- Azure Storage Tables -->
         <dependency>

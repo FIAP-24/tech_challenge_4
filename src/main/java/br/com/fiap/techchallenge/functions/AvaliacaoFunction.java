@@ -40,15 +40,15 @@ public class AvaliacaoFunction {
     private final EmailService emailService;
     private final Validator validator;
     private final ObjectMapper objectMapper;
-    private final TelemetryClient telemetryClient;
-    
+    //private final TelemetryClient telemetryClient;
+
     public AvaliacaoFunction(StorageTableRepository repository, EmailService emailService, Validator validator) {
         this.repository = repository;
         this.emailService = emailService;
         this.validator = validator;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
-        this.telemetryClient = new TelemetryClient();
+        //this.telemetryClient = new TelemetryClient();
     }
 
     /**
@@ -70,6 +70,8 @@ public class AvaliacaoFunction {
                     route = "avaliacao"
             ) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
+
+        TelemetryClient telemetryClient = new TelemetryClient();
 
         LOG.info("=== Iniciando processamento de avaliação ===");
 

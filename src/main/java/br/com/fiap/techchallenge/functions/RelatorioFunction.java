@@ -30,7 +30,7 @@ public class RelatorioFunction {
     private final RelatorioService relatorioService;
     private final StorageTableRepository repository;
     private final EmailService emailService;
-    private final TelemetryClient telemetryClient = new TelemetryClient();
+    //private final TelemetryClient telemetryClient = new TelemetryClient();
 
     public RelatorioFunction(RelatorioService relatorioService, StorageTableRepository repository, EmailService emailService) {
         this.relatorioService = relatorioService;
@@ -52,6 +52,8 @@ public class RelatorioFunction {
                     dataType = "string"
             ) String timerInfo,
             final ExecutionContext context) {
+
+        TelemetryClient telemetryClient = new TelemetryClient();
 
         LOG.info("=== Iniciando geração de relatório semanal ===");
         LOG.infof("Timer Info: %s", timerInfo);
