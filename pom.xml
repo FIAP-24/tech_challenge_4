@@ -142,34 +142,28 @@
             </plugin>
 
             <!-- Azure Functions Maven Plugin -->
-            <plugin>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-functions-maven-plugin</artifactId>
-                <version>${azure.functions.maven.plugin.version}</version>
-                <configuration>
-                    <appName>${functionAppName}</appName>
-                    <resourceGroup>${functionResourceGroup}</resourceGroup>
-                    <region>${functionAppRegion}</region>
-                    <runtime>
-                        <os>linux</os>
-                        <javaVersion>21</javaVersion>
-                    </runtime>
-                    <appSettings>
-                        <property>
-                            <name>FUNCTIONS_EXTENSION_VERSION</name>
-                            <value>~4</value>
-                        </property>
-                    </appSettings>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>package-functions</id>
-                        <goals>
-                            <goal>package</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+           <plugin>
+             <groupId>com.microsoft.azure</groupId>
+             <artifactId>azure-functions-maven-plugin</artifactId>
+             <version>${azure.functions.maven.plugin.version}</version>
+             <configuration>
+                 <appName>${functionAppName}</appName>
+                 <!-- 🔴 ESSENCIAL -->
+                 <skipInstallExtensions>true</skipInstallExtensions>
+                 <skipDeploy>true</skipDeploy>
+                 <runtime>
+                     <os>linux</os>
+                     <javaVersion>21</javaVersion>
+                 </runtime>
+             </configuration>
+             <executions>
+                 <execution>
+                     <goals>
+                         <goal>package</goal>
+                     </goals>
+                 </execution>
+             </executions>
+         </plugin>
         </plugins>
     </build>
 </project>
