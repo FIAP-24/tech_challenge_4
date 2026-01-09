@@ -39,7 +39,7 @@
         <!-- Quarkus Azure Functions -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-azure-functions-http</artifactId>
+            <artifactId>quarkus-azure-functions</artifactId>
         </dependency>
 
         <!-- Azure Functions Java Library -->
@@ -150,7 +150,6 @@
                  <appName>${functionAppName}</appName>
                  <!-- 🔴 ESSENCIAL -->
                  <skipInstallExtensions>true</skipInstallExtensions>
-                 <skipDeploy>true</skipDeploy>
                  <runtime>
                      <os>linux</os>
                      <javaVersion>21</javaVersion>

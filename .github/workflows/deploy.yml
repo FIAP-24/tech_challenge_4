@@ -31,12 +31,19 @@ jobs:
 
       - name: List Azure Function package (debug)
         run: |
-          ls -R target/azure-functions
+          ls -R target/azure-functions/${{ secrets.FUNCTION_APP_NAME }}
 
-      - name: Zip Azure Function package
+      - name: Prepare Azure Functions wwwroot
         run: |
           cd target/azure-functions/${{ secrets.FUNCTION_APP_NAME }}
-          zip -r ../../function.zip .
+          mkdir -p wwwroot
+          shopt -s extglob
+          mv !(wwwroot) wwwroot/
+
+      - name: Zip Azure Function package (with wwwroot)
+        run: |
+          cd target/azure-functions/${{ secrets.FUNCTION_APP_NAME }}/wwwroot
+          zip -r ../../../function.zip .
 
       - name: Deploy via ZipDeploy (Kudu)
         run: |

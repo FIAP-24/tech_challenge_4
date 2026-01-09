@@ -8,6 +8,7 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.logging.Logger;
 
 /**
@@ -21,6 +22,7 @@ import org.jboss.logging.Logger;
  * - Enviar e-mail resumo para administradores
  * - Registrar telemetria
  */
+@ApplicationScoped
 public class RelatorioFunction {
 
     private static final Logger LOG = Logger.getLogger(RelatorioFunction.class);

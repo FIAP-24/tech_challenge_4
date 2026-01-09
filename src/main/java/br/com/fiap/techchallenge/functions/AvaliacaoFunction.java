@@ -10,6 +10,7 @@ import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.jboss.logging.Logger;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * - Enviar notificação se crítico
  * - Registrar telemetria
  */
+@ApplicationScoped
 public class AvaliacaoFunction {
 
     private static final Logger LOG = Logger.getLogger(AvaliacaoFunction.class);
