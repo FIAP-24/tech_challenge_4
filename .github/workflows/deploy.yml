@@ -2,18 +2,16 @@ name: Deploy Quarkus App to Azure Functions
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 env:
   JAVA_VERSION: '21'
-  MAVEN_VERSION: '3.9.5'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,24 +20,22 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-          cache: 'maven'
+          distribution: temurin
+          cache: maven
 
-      - name: Install Azure Functions Core Tools
+      - name: Build Quarkus Azure Function
         run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-          sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
-          sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-$(lsb_release -cs)-prod $(lsb_release -cs) main" > /etc/apt/sources.list.d/dotnetdev.list'
-          sudo apt-get update
-          sudo apt-get install azure-functions-core-tools-4
+          mvn clean package \
+            -DskipTests \
+            -DfunctionAppName=${{ secrets.FUNCTION_APP_NAME }}
 
-      - name: Build with Maven
+      - name: List Azure Function package (debug)
         run: |
-          mvn clean package -DskipTests
+          ls -R target/azure-functions
 
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ secrets.FUNCTION_APP_NAME }}
-          package: ${{ github.workspace }}/target/*.jar
+          package: target/azure-functions/${{ secrets.FUNCTION_APP_NAME }}
           publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
