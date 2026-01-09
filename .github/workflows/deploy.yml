@@ -43,4 +43,4 @@ jobs:
           curl -X POST \
             -u '${{ secrets.AZURE_CREDENTIALS }}' \
             --data-binary @target/function.zip \
-            https://${{ secrets.FUNCTION_APP_NAME }}.scm.azurewebsites.net/api/zipdeploy
+            https://${{ secrets.FUNCTION_APP_NAME }}.scm.centralus-01.azurewebsites.net/api/zipdeploy
