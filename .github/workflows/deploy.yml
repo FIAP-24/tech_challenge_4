@@ -33,9 +33,14 @@ jobs:
         run: |
           ls -R target/azure-functions
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ secrets.FUNCTION_APP_NAME }}
-          package: target/azure-functions/${{ secrets.FUNCTION_APP_NAME }}
-          publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Zip Azure Function package
+        run: |
+          cd target/azure-functions/${{ secrets.FUNCTION_APP_NAME }}
+          zip -r ../../function.zip .
+
+      - name: Deploy via ZipDeploy (Kudu)
+        run: |
+          curl -X POST \
+            -u '${{ secrets.AZURE_CREDENTIALS }}' \
+            --data-binary @target/function.zip \
+            https://${{ secrets.FUNCTION_APP_NAME }}.scm.azurewebsites.net/api/zipdeploy
